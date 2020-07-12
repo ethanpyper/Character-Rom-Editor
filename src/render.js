@@ -191,17 +191,22 @@ async function export_char_file(){
 
         for(i=0; i<256; i++){
             for(j=0; j<64; j++){
-                temp_arr.push(character_arr[i][j])
+                if((j+1)%8 === 0){
+                    temp_arr.push(character_arr[i][j]+" ")
+                }
+                else{
+                    temp_arr.push(character_arr[i][j])
+                }
             }
         }
 
         const string = temp_arr.join("");
         console.log(string)
 
-        mem_1 = string.slice(0,4096)
-        mem_2 = string.slice(4096,8192)
-        mem_3 = string.slice(8192,12288)
-        mem_4 = string.slice(12288,16384)
+        mem_1 = string.slice(0,4608)
+        mem_2 = string.slice(4608,9216)
+        mem_3 = string.slice(9216,13824)
+        mem_4 = string.slice(13824,18432)
 
         console.log(mem_1)
 
