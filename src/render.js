@@ -14,8 +14,8 @@ const fs = require("fs");
 var character_arr = [];
 var current_char_val = 0;
 
-var width = 8,
-    height = 8,
+var width = 16,
+    height = 16,
     buffer = new Uint8ClampedArray(width * height * 4); // have enough bytes
 
 // create off-screen canvas element
@@ -28,14 +28,54 @@ canvas.height = height;
 // create imageData object
 var idata = ctx.createImageData(width, height);
 
+var copied_char = [];
 
-
-window.onload = function populate_character_arr() { 
+window.onload = function init_program() { 
   for (i = 0; i < 256; i++) {
-    character_arr.push(new Array(64).fill(0));
+    character_arr.push(new Array(256).fill(0));
   }
   console.log(character_arr.length);
+
+  createDrawArea();
 } 
+
+function createDrawArea() { 
+    var table = document.getElementById("button_table")
+
+    //Create table header
+    var table_head = '<thead><tr><th></th>'
+    //ADD TABLE HEADERS IN FOR LOOP HERE
+    for (i = 0; i<width; i++){
+        var temp = "<th>" + i.toString() + "</th>"
+        table_head = table_head.concat(temp)
+    }
+
+    table_head = table_head.concat("</thead></tr>")
+
+    table.insertAdjacentHTML('beforeend',table_head)
+
+    var table_rows = "<tbody>"
+    // Create Table body
+    var total_count= 0;
+    for (i = 0; i<width; i++){
+        var temp_row_header = "<th>" + i.toString() + "</th>"
+        table_rows = table_rows.concat("<tr>" + temp_row_header)
+
+        var start_row_content ='<td><button class="button"'
+        var temp_row_content = ""
+        for (j = 0; j<height; j++){
+            temp_row_content = temp_row_content.concat(start_row_content)
+            var temp_id = 'id="' + total_count.toString() + '"'
+            temp_row_content = temp_row_content.concat(temp_id + ' onmouseover="toggleBit(this.id, event)"></button></td>')
+            total_count++;
+        }
+        table_rows = table_rows.concat(temp_row_content)
+        table_rows = table_rows.concat("</tr>")
+    }
+
+    table.insertAdjacentHTML('beforeend', table_rows)
+
+  } 
 
 current_char_dom.addEventListener("keyup", function(event) {
     // Number 13 is the "Enter" key on the keyboard
@@ -50,17 +90,20 @@ current_char_dom.addEventListener("keyup", function(event) {
     }
   });
 
-function toggleBit(id){
+function toggleBit(id, e){
     var button = document.getElementById(id);
     var curr_char = character_arr[current_char_val];
     var butt_val = parseInt(id, 10);
-    if(button.className == "button is-dark"){
-        button.className = "button";
-        curr_char[butt_val] = 0;
-    }
-    else{
-        button.className = "button is-dark";
-        curr_char[butt_val] = 1;
+    console.log(e)
+    if(e.buttons == 1){
+        if(button.className == "button is-dark"){
+            button.className = "button";
+            curr_char[butt_val] = 0;
+        }
+        else{
+            button.className = "button is-dark";
+            curr_char[butt_val] = 1;
+        }
     }
     draw_preview();
 }
@@ -89,7 +132,7 @@ function clear_char(){
 
 function draw_char(char_pos){
     var temp_char = character_arr[char_pos]
-    for(i = 0; i<64; i++){
+    for(i = 0; i<256; i++){
         var button = document.getElementById(i);
         if(temp_char[i] == 1){
             button.className = "button is-dark"
@@ -140,7 +183,7 @@ async function save_char_file(){
         var temp_arr = []
 
         for(i=0; i<256; i++){
-            for(j=0; j<64; j++){
+            for(j=0; j<256; j++){
                 temp_arr.push(character_arr[i][j])
             }
         }
@@ -170,8 +213,8 @@ async function load_char_file(){
         console.log(data[0]);
     
         for(i=0; i<256; i++){
-            for(j=0; j<64; j++){
-                var x = (i*64)+j
+            for(j=0; j<256; j++){
+                var x = (i*256)+j
                 character_arr[i][j] = data[x];
             }
         }
@@ -190,8 +233,8 @@ async function export_char_file(){
         var temp_arr = []
 
         for(i=0; i<256; i++){
-            for(j=0; j<64; j++){
-                if((j+1)%8 === 0){
+            for(j=0; j<256; j++){
+                if((j+1)%16 === 0){
                     temp_arr.push(character_arr[i][j]+" ")
                 }
                 else{
@@ -200,26 +243,21 @@ async function export_char_file(){
             }
         }
 
-        const string = temp_arr.join("");
-        console.log(string)
+        const mem = temp_arr.join("");
+        console.log(mem)
 
-        mem_1 = string.slice(0,4608)
-        mem_2 = string.slice(4608,9216)
-        mem_3 = string.slice(9216,13824)
-        mem_4 = string.slice(13824,18432)
-
-        console.log(mem_1)
+        console.log(mem)
 
         if (filePath) {
-            fs.writeFile((filePath+"_1.mem"), mem_1, () => console.log('File exported successfully!'));
+            fs.writeFile((filePath+".mem"), mem, () => console.log('File exported successfully!'));
         }
-        if (filePath) {
-            fs.writeFile((filePath+"_2.mem"), mem_2, () => console.log('File exported successfully!'));
-        }
-        if (filePath) {
-            fs.writeFile((filePath+"_3.mem"), mem_3, () => console.log('File exported successfully!'));
-        }
-        if (filePath) {
-            fs.writeFile((filePath+"_4.mem"), mem_4, () => console.log('File exported successfully!'));
-        }
+}
+
+function copy_char(){
+    copied_char = Array.from(character_arr[current_char_dom.value]);
+}
+
+function paste_char(){
+    character_arr[current_char_dom.value] = Array.from(copied_char);
+    draw_char(current_char_val);
 }
